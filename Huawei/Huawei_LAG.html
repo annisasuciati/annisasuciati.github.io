@@ -1,0 +1,466 @@
+<html>
+    <h2>Generate LAG Script for Huawei</h2> 
+    <head>
+        <style>
+            * {
+              box-sizing: border-box;
+            }
+            
+            .row {
+              display: flex;
+            }
+
+            .row2 {
+                display : flex;
+                padding-top: 5px;
+            }
+            
+            /* Create two equal columns that sits next to each other */
+            .column {
+                display: flex;
+              /* flex: 20%; */
+              padding: 2px;
+              /* height: 300px; Should be removed. Only for demonstration */
+            }
+
+            .column2 {
+                display: flex;
+              /* flex: 20%; */
+              padding-left: 50px;
+            }
+            </style>
+    </head>
+    <body >
+        <!-- <div class="row"> -->
+            <div class="column">
+
+                <form autocomplete="off" onsubmit="myFunction(); return false;" >
+
+                    <label >Masukkan Jumlah Port Existing:</label><br>
+                    <input type="number" id="quantity_existing"  min="1" max="9" value="1"> <br><br>
+
+                    <button type="button" onclick="AddExistPort()">Add Existing Port</button> <br><br>
+
+                    <span id="existporthere"></span>
+
+                    <label for="quantity">Masukkan Jumlah Port Tambahan:</label><br>
+                    <input type="number" id="quantity" name="quantity" min="1" max="9" value="1"> <br><br>
+
+                    <button type="button" onclick="AddPort()">Add New Port (for LAG) </button> <br><br>
+
+                    <span id="porthere"></span>
+
+                    <label for="hostname">Hostname :</label><br>
+                    <input type="text" id="hostname" name="hostname"><br><br>
+        
+                    <label for="vlan">Vlan </label><br>
+                    <button id = "bttn_vlan0" type="button" onclick="AddVlan()">Add New Vlan </button> <br><br>
+
+                    <span id="vlanhere"></span>
+        
+                    <label for="bundle">Bundle Name :</label><br>
+                    <input type="text" id="bundle" name="bundle"><br><br>
+                    <label for="des_bundle">Description Bundle :</label><br>
+                    <input type="text" id="des_bundle" name="des_bundle" OnChange="SetSuggestLink()" /><br><br>
+        
+        
+                    <input type="submit" value="Generate" >
+                    <button type="button" onclick="window.location.reload();">Reset All</button> <br><br>
+
+                    <h1>Script</h1>
+                    <span id="start_port"></span>
+                    <span id="script_port"></span>
+                    <span id="script_other_port"></span> 
+                    <span id="script_vlan"></span>
+                    
+
+                    <button type="button" onclick="gotostart()">Homepage</button>
+                </form>
+                <div  class="column" style="display: none" name = "portport">
+                    <form  class="column" id = "moreport_exist" autocomplete="off"  >
+    
+                        <label id = label_exist_port_no> :</label><br>
+                        <input type="text" id="exist_port_no" name="portexist1"><br><br>
+            
+                        <label id =desc_exist_port> :</label><br>
+                        <input type="text" id="desc_exist_port" name="des_port1"><br><br>
+                      </form>
+                </div>
+
+                <div  class="column" style="display: none" name = "portport">
+                    <form  class="column" id = "moreport" autocomplete="off"  >
+    
+                        <label id = portname> :</label><br>
+                        <input type="text" id="port" name="port1"><br><br>
+            
+                        <label id =des_port> :</label><br>
+                        <input type="text" id="des_port" name="des_port1"><br><br>
+                      </form>
+                </div>
+
+                <div  class="column" style="display: none" name = "vlan">
+                    <form  class="column" id = "morevlan" autocomplete="off" >
+    
+                        <label id = vlannum> :</label><br>
+                        <input type="text" id="vlan" name="vlan" OnChange="vlan_special()" /><br><br>
+            
+                        <label id =ipadd> :</label><br>
+                        <input type="text" id="ip" name="ip"><br><br>
+
+                        <label id =subnet_label> :</label><br>
+                        <input type="text" id="subnet" name="subnet"><br>
+
+                        <label id =service style="display: none"> Choose Service :</label><br>
+                        <select id="choose_service" name="choose_service" style="display: none" >
+                            <option value="" selected disabled hidden>Choose Service</option>
+                            <option value="Inband-RTN">Inband-RTN</option>
+                            <option value="OM-power">OM-power</option>
+                        </select> <br>
+
+                        <button  type="button" onclick="AddVlan()">Add New Vlan </button>
+                      </form>
+                </div>
+                  
+            </div>
+        
+
+        <script>
+
+            var counter = 1;
+            var lala = new Array()
+            var lili = new Array()
+            var plus_exist = 0
+            var c_vlan = 0
+            var c_special = 0
+            var counter_exist = new Array()
+            var counter_new = new Array()
+            
+
+            function vlan_special(){
+                v = document.getElementById("vlan_form"+c_vlan.toString()).elements[0].value;
+                str = v.toString()
+                v1 = str[0]
+                v2 = str[0]+str[1]
+
+                if (v2 == 39){
+                    document.getElementById("slct_vlan"+c_vlan).style.display = "block";
+                }
+
+                
+            }
+
+            function AddExistPort(){
+                c = counter
+                plus_exist = document.getElementById("quantity_existing").value;
+                var i 
+                if ((parseInt(counter-1) + parseInt(plus_exist)) >= 10){ //di - 1 karena di exist di tambah 1
+                    alert('Your Total Port should be under 10')
+                    return false
+                } 
+                for (i = counter; i < (parseInt(plus_exist)+parseInt(counter)) ; i++){
+                    
+                    var newFields = document.getElementById('moreport_exist').cloneNode(true);
+                    newFields.id = 'exist_port';
+                    newFields.style.display = 'block';
+                    newFields.id = newFields.id + i;
+                    newFields.getElementsByTagName('label')[0].id = "label" + i;
+                    newFields.getElementsByTagName('label')[1].id = "desc_label" + i;
+                    
+                    var insertHere = document.getElementById('existporthere');
+                    insertHere.parentNode.insertBefore(newFields,insertHere);
+                    counter_exist.push(i)
+
+                }
+                counter= i
+                for (i = c; i < (parseInt(plus_exist)+parseInt(counter)) ; i++){
+                    document.getElementById("label"+i).textContent = 'Port-' + i + ' (Existing) : '
+                    document.getElementById("desc_label"+i).textContent = 'Description Port-' + i + ' (Existing) : '
+                }
+                // document.getElementById("script_other_port").innerHTML = lala ;
+                // counter_new = parseInt(plus_exist) + 1
+            }
+
+            function reset(){
+                window.location.reload();;
+            }
+
+            function gotostart(){
+                window.location.href="../Homepage.html";
+            }
+
+            function submitport(){
+                var port3 = document.getElementById("port3").elements[0].value;
+                des_port3 = document.getElementById("port3").elements[1].value;
+                window.port3 = port3
+                window.des_port3 = des_port3
+                if (counter == 5){
+                    var port4 = document.getElementById("port4").elements[0].value;
+                    des_port4 = document.getElementById("port4").elements[1].value;
+                    window.port4 = port4
+                    window.des_port4 = des_port4
+                }
+            }
+
+            function AddVlan(){
+                c_vlan = c_vlan + 1
+                var newFields = document.getElementById('morevlan').cloneNode(true);
+                newFields.style.display = 'block';
+                newFields.id = 'vlan_form';
+                newFields.id = newFields.id + c_vlan;
+                newFields.getElementsByTagName('label')[0].id = "label_vlan" + c_vlan;
+                newFields.getElementsByTagName('label')[1].id = "ipadd_vlan" + c_vlan;
+                newFields.getElementsByTagName('label')[2].id = "subnet_vlan" + c_vlan;
+                newFields.getElementsByTagName('button')[0].id = "bttn_vlan" + c_vlan;
+                newFields.getElementsByTagName('select')[0].id = "slct_vlan" + c_vlan;
+
+
+                    
+                var insertHere = document.getElementById('vlanhere');
+                insertHere.parentNode.insertBefore(newFields,insertHere);
+
+                document.getElementById("label_vlan"+c_vlan).textContent = 'Vlan-' + c_vlan + ' : '
+                document.getElementById("ipadd_vlan"+c_vlan).textContent = 'Ip Address-' + c_vlan + ' : '
+                document.getElementById("subnet_vlan"+c_vlan).textContent = 'Subnet-' + c_vlan + ' : '
+            
+                lala = c_vlan - 1
+                document.getElementById("bttn_vlan"+lala).style.display = "none";
+                // document.getElementById("script_other_port").innerHTML = newFields.id ;
+                // counter_new = parseInt(plus_exist) + 1}
+
+            }
+
+            function AddPort(){
+                plus = document.getElementById("quantity").value;
+                c = counter
+                var i
+                if (parseInt(plus_exist) == 0){
+                    alert('You Must Add Existing Port')
+                    return false
+                }
+                if ((parseInt(counter-1) + parseInt(plus)) >= 10){ //di - 1 karena di exist di tambah 1
+                    alert('Your Total Port should be under 10')
+                    return false
+                } 
+            
+                for (i = counter ; i < (parseInt(counter) + parseInt(plus));i++) {
+                    var newFields = document.getElementById('moreport').cloneNode(true);
+                    newFields.id = 'port';
+                    newFields.style.display = 'block';
+                    newFields.id = newFields.id + i;
+                    newFields.getElementsByTagName('label')[0].id = "label_new" + i;
+                    newFields.getElementsByTagName('label')[1].id = "desc_label_new" + i;
+
+                
+                    var insertHere = document.getElementById('porthere');
+                    insertHere.parentNode.insertBefore(newFields,insertHere);
+                        counter_new.push(i)
+                    }
+                    counter = i
+                for (i = c;i < (parseInt(c) + parseInt(plus));i++) {
+                    document.getElementById("label_new"+i).textContent = 'Port-' + i + ' (New) : '
+                    document.getElementById("desc_label_new"+i).textContent = 'Description Port-' + i + ' (New) : '
+                }
+                // document.getElementById("script_vlan").innerHTML = c_vlan +'<br>'
+            }
+
+            function service_vlan(vlan,vlan_srv,i){
+                count = vlan.length
+                str = vlan.toString()
+                v1 = str[0]
+                v2 = str[0]+str[1]
+                if (isNaN(count) || count == 3 ) {
+                    if (v1 == 2 ) {
+                        text_v = "Abis_IP";
+                    } else if (v1 == 3 ) {
+                        text_v = "IuB_UP";
+                    } else if (v1 == 4 ) {
+                        text_v = "LTE-S1X2";
+                    } else {
+                        text_v = "You put the wrong number of Vlan"
+                    }
+                } else if (isNaN(count) || count == 4 ) {
+                        if (v2 == 39){
+                            text_v = vlan_srv
+                        } else if (v1 == 1 ) {
+                            text_v = "OM-HWI";
+                        } else {
+                            text_v = "Inband-Ipaso";
+                        } 
+                    } else {
+                    text_v = "You put the wrong number of Vlan";
+                }
+                
+                return text_v
+            }
+
+            function script_vlan(vlan_id, vlan_ipadd, vlan_subnet,bundle,hostname,vlan_srv){
+                length = vlan_id.length
+                var i 
+                var text_vlan = ""
+                for (i = 0 ; i < length ; i++){
+                    if (vlan_id[i].includes('-')){
+                        n= i++
+                        number = n + 1
+                        alert('You used "-" for vlan number ' + number)
+                    } else {
+                        
+                        vlan_id[i] = vlan_id[i].replace(/\s/g, '');
+                        service = service_vlan(vlan_id[i],vlan_srv[i])
+                        line1 = "interface " + bundle + "." +vlan_id[i]
+                        line2 = "vlan-type dot1q "+vlan_id[i]
+                        line3 = "mtu 4486"
+                        line4 = "description " + hostname + '_' + bundle + "." +vlan_id[i]+"_to_"+service+" VLAN "+vlan_id[i]
+                        line7 = "ip binding vpn-instance " + service
+                        line5 = 'ip address ' + vlan_ipadd[i] + " " + vlan_subnet[i]
+                        line6 = 'statistic enable ' + '<br>' + 'trust upstream default' + '<br>'
+                        text_vlan = text_vlan + line1 + '<br>' + line2 + '<br>' + line3 + '<br>' + line4 + '<br>' + line7 + '<br>' + line5 + '<br>' + line6 + '<br>'
+                    }
+                }
+                return text_vlan
+            }
+
+            function script_exist_port(port_plus,descport_plus,bundle){
+                length = port_plus.length
+                var i 
+                var text = new Array()
+                var text_port = ""
+                var text0 = ""
+                var res = bundle.substring(bundle.length-1);
+                var ser = bundle.substring(0,bundle.length-1);
+                var bundle_edit = ser + " " + res
+                for (i = 0 ; i < length ; i++){
+                    line_exist = 'clear configuration interface ' + port_plus[i] + '<br>' + 'Y'
+                    line1 = 'interface ' + port_plus[i]
+                    line2 = 'description ' + descport_plus[i]
+                    line3 = 'undo shutdown' + '<br>' + bundle_edit.toLowerCase() + '<br>' + 'dcn' + '<br>'
+                    // line4 = 'link-group ' + bundle
+                    text0 = text0 +  line_exist + '<br>'
+                    text_port = text_port + line1 + '<br>' + line2 + '<br>' + line3 + '<br>'  
+                }
+                text.push(text0)
+                text.push(text_port)
+                
+                return text;
+
+
+            }
+
+
+            function script_plus_port(port_plus,descport_plus,bundle){
+                length = port_plus.length
+                var i 
+                var text_port = ""
+                var line_new = ""
+                var text = new Array()
+                var res = bundle.substring(bundle.length-1);
+                var ser = bundle.substring(0,bundle.length-1);
+                var bundle_edit = ser + " " + res
+                for (i = 0 ; i < length ; i++){
+                    line0 = 'clear configuration interface ' + port_plus[i] + '<br>' + 'Y'
+                    line1 = 'interface ' + port_plus[i]
+                    line2 = 'description ' + descport_plus[i]
+                    line3 = 'undo shutdown' + '<br>' + bundle_edit.toLowerCase() + '<br>' + 'dcn' + '<br>'
+                    text_port = text_port + line1 + '<br>' + line2 + '<br>' + line3 + '<br>' 
+                    line_new = line_new + line0 + '<br>'
+                }
+                text.push(line_new)
+                text.push(text_port)
+                return text
+            }
+
+            function script_weigth(){
+                var i 
+                weight = 5
+                var text = "port-queue be wfq weight " + weight + " outbound" +  '<br>'
+                
+                for (i = 1; i < 5; i++){
+                    if (i == 1){
+                        weight = 15
+                    } else if (i == 3){
+                        weight = 55
+                    } else {
+                        weight = 5
+                    }
+                    text = text + 'port-queue af' + i + ' wfq weight ' + weight + ' outbound' + '<br>';
+                }
+
+                return text
+            }
+
+
+            
+
+            function myFunction(){
+                bundle = document.getElementById("bundle").value;
+                des_bundle = document.getElementById("des_bundle").value;
+                plus = document.getElementById("quantity").value;
+                plus_exist = document.getElementById("quantity_existing").value;
+                hostname = document.getElementById("hostname").value;
+                var port_plus = new Array()
+                var descport_plus = new Array()
+                var port_exist = new Array()
+                var descport_plus_exist = new Array()
+                var vlan_id = new Array()
+                var vlan_ipadd = new Array()
+                var vlan_subnet = new Array()
+                var vlan_srv = new Array()
+                var i
+                
+                for (i of counter_exist){
+                    // i++
+                    idport = "exist_port"+i.toString()
+                    exist_port = document.getElementById(idport).elements[0].value;
+                    exist_descport = document.getElementById(idport).elements[1].value;
+                    port_exist.push(exist_port)
+                    descport_plus_exist.push(exist_descport)
+                }
+                text0 = 'system-view' +'<br>'+'<br>'
+                text1 = 'interface ' + bundle
+                text2 = 'mtu 4486'
+                text3 = 'description '+des_bundle
+                text4 = 'control-flap'+'<br>'+ 'trust upstream default' + '<br>' + 'mode lacp-static' + '<br>' + 'lacp timeout fast' + '<br>'
+                text5 = script_weigth()
+                text6 = 'statistic enable'
+                
+                for (i = 1 ; i < parseInt(c_vlan+1) ; i++){
+                    idvlan = "vlan_form"+i.toString()
+                    vlan_add = document.getElementById(idvlan).elements[0].value;
+                    ipadd_add = document.getElementById(idvlan).elements[1].value;
+                    subnet_add = document.getElementById(idvlan).elements[2].value;
+                    service_ = document.getElementById("slct_vlan"+i.toString()).value;
+                    // if (isNaN(service)){
+
+                    // }
+                    vlan_id.push(vlan_add)
+                    vlan_ipadd.push(ipadd_add)
+                    vlan_subnet.push(subnet_add)
+                    vlan_srv.push(service_)
+                }
+                text_vlan = script_vlan(vlan_id, vlan_ipadd, vlan_subnet,bundle,hostname,vlan_srv)
+                
+                service = service_vlan(vlan_id[0])
+
+                text_exist_port =  script_exist_port(port_exist,descport_plus_exist,bundle)
+
+
+                for (i of counter_new){
+                    idport = "port"+i.toString()
+                    port = document.getElementById(idport).elements[0].value;
+                    descport = document.getElementById(idport).elements[1].value;
+
+                    port_plus.push(port)
+                    descport_plus.push(descport)
+                }
+
+                text_port = script_plus_port(port_plus,descport_plus,bundle)
+
+                
+                document.getElementById("start_port").innerHTML = text0 +'<br>' + text_exist_port[0] + '<br>' + text_port[0] + '<br>';
+                document.getElementById("script_port").innerHTML = text1 + '<br>'  + text2 + '<br>' + text3 + '<br>' + text4  + text5 + text6 + '<br><br>' ;
+                document.getElementById("script_other_port").innerHTML = text_exist_port[1] + text_port[1];
+                document.getElementById("script_vlan").innerHTML = text_vlan+'commit'+'<br><br>' + 'return' + '<br><br>';
+            }
+
+        </script>
+    </body>
+</html>

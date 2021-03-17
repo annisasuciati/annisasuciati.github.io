@@ -1,0 +1,80 @@
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            * {
+              box-sizing: border-box;
+            }
+            
+            .row {
+              display: flex;
+              padding-top: 50px;
+              padding-bottom: 50px;
+            }
+            
+            /* Create two equal columns that sits next to each other */
+            .column {
+                display: flex;
+              /* flex: 20%; */
+              padding: 2px;
+              /* height: 300px; Should be removed. Only for demonstration */
+            }
+
+            .column2 {
+                display: flex;
+              /* flex: 20%; */
+              padding-left: 50px;
+            }
+
+            .center {
+              display: flex;
+              justify-content: left;
+              align-items: center;
+              height: 50px;
+              /* border: 3px solid green;  */
+            }
+            </style>
+    </head>
+    <body>
+        <h2>Generate Script</h2> 
+
+        <form onsubmit="start(); return false;">
+        <label for="router">Router:</label>
+        <select id="router" name="routerlist" >
+            <option value="" selected disabled hidden>Choose Router</option>
+            <option value="Juniper">Juniper</option>
+            <option value="Cisco">Cisco</option>
+            <option value="Ericsson">Ericsson</option>
+            <option value="Huawei">Huawei</option>
+        </select> <br><br>
+        <label for="script">Script:</label>
+        <select id="script" name="scriptlist"  >
+            <option value="" selected disabled hidden>Choose Script</option>
+            <option value="ipvlan">Add Ip & Vlan</option>
+            <option value="vrf">Add vrf</option>
+            <option value="Routing">Add Routing Instance</option>
+            <option value="Context">Add Context</option>
+            <option value="vpn">Add VPN Instance</option>
+            <option value="LAG">LAG</option>
+        </select> <br><br>
+        <input type="submit" value="Submit">
+        </form>
+
+        <p id="demo"></p> <br>
+
+        
+    </body>
+    
+
+    <script>
+
+        // selecElement.selectedIndex = 0;
+        function start(){
+            router = document.getElementById("router").value
+            script = document.getElementById("script").value
+            // window.location = "./Juniper/Juniper_LAG.html"
+            window.location = "./"+router+'/'+router+'_'+script+'.html'
+        }
+    </script>
+</html>
+
